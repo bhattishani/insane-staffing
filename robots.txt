@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /assets/vendors/
+
+# XML Sitemap
+Sitemap: https://insanestaffing.com/sitemap.xml
