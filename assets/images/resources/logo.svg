@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200" height="40" viewBox="0 0 200 40" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .logo-text { font-family: 'Poppins', sans-serif; font-weight: 700; }
+    .primary { fill: #1f2937; }
+    .company { fill: #1f2937; }
+  </style>
+  <text x="10" y="28" class="logo-text" style="font-size: 24px;">
+    <tspan fill="#000000">Insane</tspan>
+    <tspan x="85" class="primary">Staffing</tspan>
+    <tspan x="160" class="company">Inc.</tspan>
+  </text>
+</svg>

@@ -23,18 +23,18 @@
 :root {
     --thm-font: 'Outfit', sans-serif;
     --thm-font-2: "Lora", serif;
-    --thm-primary-color: #00c486;
-    --thm-primary-color-rgb: 0, 196, 134;
-    --thm-secondary-color: #ed746c;
-    --thm-secondary-color-rgb: 237, 116, 108;
-    --thm-body-font-color: #6a726f;
+    --thm-primary-color: #1f2937;
+    --thm-primary-color-rgb: 31, 41, 55;
+    --thm-secondary-color: #1f2937;
+    --thm-secondary-color-rgb: 31, 41, 55;
+    --thm-body-font-color: #1f2937;
     --thm-body-font-size: 17px;
     --thm-body-line-height: 28px;
     --thm-body-font-weight: 400;
-    --thm-heading-font-color: #062a26;
+    --thm-heading-font-color: #1f2937;
     --thm-white: #ffffff;
-    --thm-black: #062a26;
-    --thm-black-bg: #062a26;
+    --thm-black: #1f2937;
+    --thm-black-bg: #1f2937;
     --thm-gray-bg: #edf4f2;
     --thm-border-color: #dde6e3;
     --thm-border-radius: 10px;
