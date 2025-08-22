@@ -3,4 +3,4 @@ Allow: /
 Disallow: /assets/vendors/
 
 # XML Sitemap
-Sitemap: https://insanestaffing.com/sitemap.xml
+Sitemap: https://insanestaffing.ca/sitemap.xml
