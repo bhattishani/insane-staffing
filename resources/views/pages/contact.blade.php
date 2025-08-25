@@ -263,7 +263,7 @@
 						<div class="mb-6">
 							<div
 								class="g-recaptcha"
-								data-sitekey="{{ env('RECAPTCHA_SITE_KEY') }}"
+								data-sitekey="{{ config('recaptcha.site_key') }}"
 							></div>
 						</div>
 						<div
