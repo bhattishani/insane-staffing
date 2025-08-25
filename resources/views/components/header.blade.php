@@ -32,6 +32,25 @@
 				class="text-gray-600 hover:text-dark-600 {{ Request::routeIs('contact') ? 'text-dark-600 font-semibold border-b-2 border-dark-600' : '' }}"
 				href="{{ route('contact') }}"
 			>Contact</a>
+			@auth
+				<a
+					class="inline-flex items-center px-4 py-2 bg-dark-600 text-white font-medium rounded-md hover:bg-dark-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dark-500 {{ Request::routeIs('admin.dashboard') ? 'ring-2 ring-offset-2 ring-dark-500' : '' }}"
+					href="{{ route('admin.dashboard') }}"
+				>
+					Dashboard
+				</a>
+				<form
+					action="{{ route('logout') }}"
+					class="inline ml-3"
+					method="POST"
+				>
+					@csrf
+					<button
+						class="inline-flex items-center px-4 py-2 border border-red-600 text-red-600 font-medium rounded-md hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+						type="submit"
+					>Logout</button>
+				</form>
+			@endauth
 		</div>
 		<!-- Mobile Menu Button -->
 		<button
@@ -62,5 +81,23 @@
 			class="block py-2 text-gray-600 hover:text-dark-600 {{ Request::routeIs('contact') ? 'text-dark-600 font-semibold' : '' }}"
 			href="{{ route('contact') }}"
 		>Contact</a>
+		@auth
+			<a
+				class="block w-full py-2 text-white bg-dark-600 hover:bg-dark-700 text-center rounded-md mb-2 {{ Request::routeIs('admin.dashboard') ? 'ring-2 ring-offset-2 ring-dark-500' : '' }}"
+				href="{{ route('admin.dashboard') }}"
+			>
+				Dashboard
+			</a>
+			<form
+				action="{{ route('logout') }}"
+				method="POST"
+			>
+				@csrf
+				<button
+					class="block w-full py-2 text-red-600 border border-red-600 hover:bg-red-50 text-center rounded-md"
+					type="submit"
+				>Logout</button>
+			</form>
+		@endauth
 	</div>
 </header>
