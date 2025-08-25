@@ -18,7 +18,6 @@ class Contact extends Model
         'city',
         'device_fingerprint',
         'spam_score',
-        'is_processed',
         'follow_up_notes',
         'last_follow_up',
         'status'

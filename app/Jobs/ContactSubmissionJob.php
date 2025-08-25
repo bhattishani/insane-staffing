@@ -32,8 +32,5 @@ class ContactSubmissionJob implements ShouldQueue
 
         // Send email to admin
         Mail::to('insanestaffing@gmail.com')->send(new ContactFormMail($this->contact));
-
-        // Mark as processed
-        $this->contact->update(['is_processed' => true]);
     }
 }
