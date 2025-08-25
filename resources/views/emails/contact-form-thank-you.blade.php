@@ -56,7 +56,7 @@
 		</div>
 		<div class="content">
 			<div class="thank-you">
-				Dear {{ $contact->name }},
+				Dear {{ e($contact->name) }},
 			</div>
 			<p>Thank you for reaching out to us. We have received your inquiry and our team will review it promptly. You can
 				expect to hear back from us soon.</p>
@@ -65,11 +65,11 @@
 				<h3>Your Submission Details:</h3>
 				<div class="field">
 					<div class="label">Inquiry Type:</div>
-					<div>{{ $contact->inquiry_type }}</div>
+					<div>{{ e($contact->inquiry_type) }}</div>
 				</div>
 				<div class="field">
 					<div class="label">Message:</div>
-					<div>{{ $contact->message }}</div>
+					<div>{!! nl2br(e($contact->message)) !!}</div>
 				</div>
 			</div>
 

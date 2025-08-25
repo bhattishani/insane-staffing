@@ -40,7 +40,7 @@
 			<div class="mb-6">
 				<h3 class="text-lg font-semibold mb-4">Message</h3>
 				<div class="bg-gray-50 p-4 rounded">
-					{{ $contact->message }}
+					{!! nl2br(e($contact->message)) !!}
 				</div>
 			</div>
 
