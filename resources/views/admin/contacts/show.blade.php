@@ -27,10 +27,10 @@
 				<div>
 					<h3 class="text-lg font-semibold mb-4">Submission Details</h3>
 					<div class="space-y-3">
-						<p><span class="font-medium">Submitted:</span> {{ $contact->created_at->format('M d, Y h:i A') }}</p>
+						<p><span class="font-medium">Submitted:</span> {{ $contact->created_at->format('M d, Y h:i A A') }}</p>
 						<p><span class="font-medium">Location:</span> {{ $contact->city }}, {{ $contact->country }}</p>
 						<p><span class="font-medium">Last Follow-up:</span>
-							{{ $contact->followUps->isNotEmpty() ? $contact->followUps->last()->follow_up_date->format('M d, Y h:i A') : 'No follow-up yet' }}
+							{{ $contact->followUps->isNotEmpty() ? $contact->followUps->last()->follow_up_date->format('M d, Y h:i A A') : 'No follow-up yet' }}
 						</p>
 						<p><span class="font-medium">Spam Score:</span> {{ $contact->spam_score }}</p>
 					</div>
@@ -51,7 +51,7 @@
 							<div class="flex justify-between items-start">
 								<div>
 									<h4 class="font-medium">{{ ucfirst($followUp->follow_up_type) }} - {{ ucfirst($followUp->status) }}</h4>
-									<p class="text-sm text-gray-600">{{ $followUp->follow_up_date->format('M d, Y H:i') }}</p>
+									<p class="text-sm text-gray-600">{{ $followUp->follow_up_date->format('M d, Y h:i A') }}</p>
 								</div>
 								@if ($followUp->next_follow_up_date)
 									<span class="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">

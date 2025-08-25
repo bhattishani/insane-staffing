@@ -98,7 +98,7 @@
 									</div>
 								</td>
 								<td class="px-4 py-3">{{ ucfirst($followUp->follow_up_type) }}</td>
-								<td class="px-4 py-3">{{ $followUp->follow_up_date->format('M d, Y H:i') }}</td>
+								<td class="px-4 py-3">{{ $followUp->follow_up_date->format('M d, Y h:i A') }}</td>
 								<td class="px-4 py-3">
 									<span
 										class="px-2 py-1 text-sm rounded-full

@@ -87,7 +87,7 @@
 											<span class="text-gray-400">N/A</span>
 										@endif
 									</td>
-									<td class="px-4 py-3">{{ $contact->created_at->format('M d, Y H:i') }}</td>
+									<td class="px-4 py-3">{{ $contact->created_at->format('M d, Y h:i A') }}</td>
 									<td class="px-4 py-3 space-x-2">
 										<a
 											class="text-blue-600 hover:text-blue-800"
