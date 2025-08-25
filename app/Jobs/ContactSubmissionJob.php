@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Mail\ContactFormMail;
+use App\Mail\ContactFormThankYouMail;
 use App\Models\Contact;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -27,10 +28,11 @@ class ContactSubmissionJob implements ShouldQueue
      */
     public function handle(): void
     {
-        // Send email to submitter
-        Mail::to($this->contact->email)->send(new ContactFormMail($this->contact));
-
-        // Send email to admin
+        if ($this->contact->spam_score <= 0.6) {
+            // Send thank you email to submitter
+            Mail::to($this->contact->email)->send(new ContactFormThankYouMail($this->contact));
+        }
+        // Send notification email to admin
         Mail::to('insanestaffing@gmail.com')->send(new ContactFormMail($this->contact));
     }
 }
