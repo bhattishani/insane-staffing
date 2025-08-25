@@ -8,7 +8,10 @@
 		name="viewport"
 	>
 	<title>Admin Login - Insane Staffing</title>
-	<script src="https://cdn.tailwindcss.com"></script>
+	<script
+		data-cfasync="false"
+		src="https://cdn.tailwindcss.com"
+	></script>
 	<script>
 		tailwind.config = {
 			theme: {
