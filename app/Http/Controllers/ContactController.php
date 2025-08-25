@@ -7,6 +7,7 @@ use App\Jobs\ContactSubmissionJob;
 use App\Models\Contact;
 use Arr;
 use Illuminate\Support\Facades\Http;
+use Log;
 
 class ContactController extends Controller
 {
@@ -77,6 +78,8 @@ class ContactController extends Controller
         if ($response->successful()) {
             $response = Arr::get($response->json(), "candidates.0.content.parts.0.text", 0);
             $score = floatval($response);
+            $responseLog = json_encode($response);
+            Log::info("Spam score for contact form submission: {$responseLog}");
             return max(0, min(1, $score));
         }
 
