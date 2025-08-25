@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Log;
 
 class RecaptchaServiceProvider extends ServiceProvider
 {
@@ -23,13 +24,14 @@ class RecaptchaServiceProvider extends ServiceProvider
             $client = new \GuzzleHttp\Client();
             $response = $client->post('https://www.google.com/recaptcha/api/siteverify', [
                 'form_params' => [
-                    'secret' => env('RECAPTCHA_SECRET_KEY'),
+                    'secret' => config('recaptcha.secret_key'),
                     'response' => $value,
                     'remoteip' => request()->ip()
                 ]
             ]);
 
             $body = json_decode((string) $response->getBody());
+            Log::info('reCAPTCHA response: ' . json_encode($body));
             return $body->success;
         });
     }
