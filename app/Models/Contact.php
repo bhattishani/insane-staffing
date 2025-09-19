@@ -13,6 +13,7 @@ class Contact extends Model
         'phone',
         'inquiry_type',
         'message',
+        'cv_path',
         'ip_address',
         'country',
         'city',

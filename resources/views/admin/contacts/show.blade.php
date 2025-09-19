@@ -22,6 +22,20 @@
 						<p><span class="font-medium">Email:</span> {{ $contact->email }}</p>
 						<p><span class="font-medium">Phone:</span> {{ $contact->phone }}</p>
 						<p><span class="font-medium">Type:</span> {{ $contact->inquiry_type }}</p>
+						<p><span class="font-medium">CV:</span> 
+							@if ($contact->cv_path)
+								<a
+									class="text-blue-600 hover:text-blue-800 inline-flex items-center gap-1"
+									href="{{ asset('storage/' . $contact->cv_path) }}"
+									target="_blank"
+								>
+									<i class="fas fa-file-pdf"></i>
+									View CV
+								</a>
+							@else
+								<span class="text-gray-500">No CV uploaded</span>
+							@endif
+						</p>
 					</div>
 				</div>
 				<div>

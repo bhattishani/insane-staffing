@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Http\Middleware\RedirectIfAuthenticated;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -30,10 +29,11 @@ class LoginController extends Controller
             $request->session()->regenerate();
 
             if (Auth::user()->is_admin) {
-                return redirect()->intended(route('admin.contacts.index'));
+                return redirect()->intended(route('admin.dashboard'));
             }
 
             Auth::logout();
+
             return back()->withErrors([
                 'email' => 'You do not have admin access.',
             ]);

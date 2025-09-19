@@ -21,7 +21,7 @@ class StoreContactRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
+        $rules = [
             'name' => 'required|string|max:255',
             'email' => ['required', 'email', 'max:255', new \App\Rules\NotTempEmail],
             'phone' => ['required', 'string', new \App\Rules\ValidPhoneNumber],
@@ -30,6 +30,13 @@ class StoreContactRequest extends FormRequest
             'g-recaptcha-response' => 'required|recaptcha',
             'device_fingerprint' => 'required|string'
         ];
+
+        // Add CV validation only for Job Seekers
+        if ($this->input('inquiry_type') === 'Job Seeker') {
+            $rules['cv_file'] = 'nullable|file|mimes:pdf|max:5120'; // 5MB in KB
+        }
+
+        return $rules;
     }
 
     public function messages(): array
@@ -41,8 +48,11 @@ class StoreContactRequest extends FormRequest
             'inquiry_type.required' => 'Please select an inquiry type.',
             'message.required' => 'Please enter your message.',
             'g-recaptcha-response.required' => 'Please complete the reCAPTCHA.',
-            'g-recaptcha-response.recaptcha' => 'Request failed',
-            'device_fingerprint.required' => 'Device fingerprint is required.'
+            'g-recaptcha-response.recaptcha' => 'Please reload the page and try again.',
+            'device_fingerprint.required' => 'Device fingerprint is required.',
+            'cv_file.file' => 'CV must be a valid file.',
+            'cv_file.mimes' => 'CV must be a PDF file.',
+            'cv_file.max' => 'CV file size must be less than 5MB.'
         ];
     }
 }
