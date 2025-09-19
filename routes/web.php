@@ -2,26 +2,27 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('pages.index');
-})->name('home');
-
-Route::get('/about', function () {
-    return view('pages.about');
-})->name('about');
-
-Route::get('/services', function () {
-    return view('pages.services');
-})->name('services');
-
-Route::get('/contact', function () {
-    return view('pages.contact');
-})->name('contact');
-
-Route::post('/contact/submit', [App\Http\Controllers\ContactController::class, 'store'])->name('contact.submit');
 
 // Authentication Routes
 Route::middleware(['web'])->group(function () {
+    Route::get('/', function () {
+        return view('pages.index');
+    })->name('home');
+    
+    Route::get('/about', function () {
+        return view('pages.about');
+    })->name('about');
+    
+    Route::get('/services', function () {
+        return view('pages.services');
+    })->name('services');
+    
+    Route::get('/contact', function () {
+        return view('pages.contact');
+    })->name('contact');
+    
+    Route::post('/contact/submit', [App\Http\Controllers\ContactController::class, 'store'])->name('contact.submit');
+    
     Route::get('/admin/login', [App\Http\Controllers\Auth\LoginController::class, 'showLoginForm'])
         ->middleware('guest')
         ->name('login');
