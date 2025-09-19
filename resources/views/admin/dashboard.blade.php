@@ -93,11 +93,11 @@
             <div class="bg-white rounded-lg shadow-md p-6">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-gray-500 text-sm">CVs Uploaded</p>
-                        <h3 class="text-2xl font-bold text-cyan-600">{{ $stats['with_cv'] }}</h3>
+                        <p class="text-gray-500 text-sm">With Attachments</p>
+                        <h3 class="text-2xl font-bold text-cyan-600">{{ $stats['with_attachments'] }}</h3>
                     </div>
                     <div class="w-12 h-12 bg-cyan-100 rounded-lg flex items-center justify-center">
-                        <i class="fas fa-file-pdf text-cyan-600 text-xl"></i>
+                        <i class="fas fa-paperclip text-cyan-600 text-xl"></i>
                     </div>
                 </div>
             </div>

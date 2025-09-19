@@ -4,16 +4,18 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Contact extends Model
 {
+    use SoftDeletes;
     protected $fillable = [
         'name',
         'email',
         'phone',
         'inquiry_type',
         'message',
-        'cv_path',
+        'attachment_paths',
         'ip_address',
         'country',
         'city',
@@ -22,6 +24,10 @@ class Contact extends Model
         'follow_up_notes',
         'last_follow_up',
         'status'
+    ];
+
+    protected $casts = [
+        'attachment_paths' => 'array',
     ];
 
     public function followUps(): HasMany

@@ -68,7 +68,7 @@ class DashboardController extends Controller
         $confirmedSpam = (clone $query)->where('spam_score', '>', 0.5)->count();
         
         // Additional stats
-        $withCV = (clone $query)->whereNotNull('cv_path')->count();
+        $withAttachments = (clone $query)->whereNotNull('attachment_paths')->count();
         $businessInquiries = (clone $query)->where('inquiry_type', 'Business')->count();
         $jobSeekers = (clone $query)->where('inquiry_type', 'Job Seeker')->count();
         $openRequests = (clone $query)->where('status', 'open')->count();
@@ -80,7 +80,7 @@ class DashboardController extends Controller
             'genuine_requests' => $genuineRequests,
             'potential_spam' => $potentialSpam,
             'confirmed_spam' => $confirmedSpam,
-            'with_cv' => $withCV,
+            'with_attachments' => $withAttachments,
             'business_inquiries' => $businessInquiries,
             'job_seekers' => $jobSeekers,
             'open_requests' => $openRequests,

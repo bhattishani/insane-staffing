@@ -5,6 +5,7 @@
 @section('styles')
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <style>
         /* Custom Tailwind-based DataTables styling */
         .dataTables_wrapper {
@@ -180,7 +181,7 @@
 
         <!-- Advanced Filters -->
         <div class="mb-6 p-4 bg-gray-50 rounded-lg">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
                     <select id="status-filter"
@@ -211,12 +212,21 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">CV Status</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Attachments</label>
                     <select id="cv-filter"
                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="">All</option>
-                        <option value="with-cv">With CV</option>
-                        <option value="without-cv">Without CV</option>
+                        <option value="with-cv">With Files</option>
+                        <option value="without-cv">Without Files</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Records</label>
+                    <select id="deleted-filter"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Active Only</option>
+                        <option value="deleted">Deleted Only</option>
+                        <option value="with_deleted">All Records</option>
                     </select>
                 </div>
             </div>
@@ -240,12 +250,16 @@
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone
                         </th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">CV</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Files</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status
                         </th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Spam
                             Score</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Submitted
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Updated
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Deleted
                         </th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions
                         </th>
@@ -348,6 +362,7 @@
     <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
         $(document).ready(function() {
@@ -362,6 +377,7 @@
                         d.type_filter = $('#type-filter').val();
                         d.spam_filter = $('#spam-filter').val();
                         d.cv_filter = $('#cv-filter').val();
+                        d.deleted_filter = $('#deleted-filter').val();
                     }
                 },
                 columns: [{
@@ -399,6 +415,14 @@
                         name: 'created_at'
                     },
                     {
+                        data: 'updated_at',
+                        name: 'updated_at'
+                    },
+                    {
+                        data: 'deleted_at',
+                        name: 'deleted_at'
+                    },
+                    {
                         data: 'actions',
                         name: 'actions',
                         orderable: false,
@@ -420,7 +444,7 @@
                     text: 'Export CSV',
                     className: 'dt-button',
                     exportOptions: {
-                        columns: [0, 1, 2, 3, 4, 5, 6, 7] // Exclude actions column
+                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] // Exclude actions column
                     }
                 }],
                 language: {
@@ -436,13 +460,13 @@
             });
 
             // Filter event handlers
-            $('#status-filter, #type-filter, #spam-filter, #cv-filter').on('change', function() {
+            $('#status-filter, #type-filter, #spam-filter, #cv-filter, #deleted-filter').on('change', function() {
                 table.draw();
             });
 
             // Clear filters
             $('#clear-filters').on('click', function() {
-                $('#status-filter, #type-filter, #spam-filter, #cv-filter').val('');
+                $('#status-filter, #type-filter, #spam-filter, #cv-filter, #deleted-filter').val('');
                 table.draw();
             });
 
@@ -450,6 +474,9 @@
             $('#export-csv').on('click', function() {
                 table.button('.buttons-csv').trigger();
             });
+
+			// Make table variable global for reload functions
+			window.contactsTable = table;
         });
 
         function openFollowUpModal(contactId) {
@@ -461,6 +488,127 @@
         function closeFollowUpModal() {
             document.getElementById('followUpModal').classList.add('hidden');
             document.getElementById('followUpForm').reset();
+        }
+
+        // Delete contact (soft delete)
+        function deleteContact(contactId) {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "This contact will be moved to trash. You can restore it later.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, delete it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: `/admin/contacts/${contactId}`,
+                        type: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        success: function(response) {
+                            Swal.fire(
+                                'Deleted!',
+                                response.message,
+                                'success'
+                            );
+                            window.contactsTable.ajax.reload();
+                        },
+                        error: function(xhr) {
+                            Swal.fire(
+                                'Error!',
+                                'Something went wrong.',
+                                'error'
+                            );
+                        }
+                    });
+                }
+            });
+        }
+
+        // Restore contact
+        function restoreContact(contactId) {
+            Swal.fire({
+                title: 'Restore Contact?',
+                text: "This contact will be restored and become active again.",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#28a745',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Yes, restore it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: `/admin/contacts/${contactId}/restore`,
+                        type: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        success: function(response) {
+                            Swal.fire(
+                                'Restored!',
+                                response.message,
+                                'success'
+                            );
+                            window.contactsTable.ajax.reload();
+                        },
+                        error: function(xhr) {
+                            Swal.fire(
+                                'Error!',
+                                'Something went wrong.',
+                                'error'
+                            );
+                        }
+                    });
+                }
+            });
+        }
+
+        // Permanently delete contact
+        function permanentDeleteContact(contactId) {
+            Swal.fire({
+                title: 'Permanently Delete?',
+                text: "This action cannot be undone! The contact and all associated files will be permanently deleted.",
+                icon: 'error',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Yes, delete permanently!',
+                input: 'text',
+                inputPlaceholder: 'Type "DELETE" to confirm',
+                inputValidator: (value) => {
+                    if (value !== 'DELETE') {
+                        return 'You must type "DELETE" to confirm!'
+                    }
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: `/admin/contacts/${contactId}/force-delete`,
+                        type: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        success: function(response) {
+                            Swal.fire(
+                                'Permanently Deleted!',
+                                response.message,
+                                'success'
+                            );
+                            window.contactsTable.ajax.reload();
+                        },
+                        error: function(xhr) {
+                            Swal.fire(
+                                'Error!',
+                                'Something went wrong.',
+                                'error'
+                            );
+                        }
+                    });
+                }
+            });
         }
     </script>
 @endsection

@@ -22,7 +22,7 @@ Route::middleware(['web'])->group(function () {
     })->name('contact');
     
     Route::post('/contact/submit', [App\Http\Controllers\ContactController::class, 'store'])->name('contact.submit');
-    
+
     Route::get('/admin/login', [App\Http\Controllers\Auth\LoginController::class, 'showLoginForm'])
         ->middleware('guest')
         ->name('login');
@@ -42,9 +42,15 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 
     Route::get('/contacts', [App\Http\Controllers\Admin\ContactController::class, 'index'])->name('contacts.index');
     Route::get('/contacts/{contact}', [App\Http\Controllers\Admin\ContactController::class, 'show'])->name('contacts.show');
+    Route::get('/contacts/{contact}/edit', [App\Http\Controllers\Admin\ContactController::class, 'edit'])->name('contacts.edit');
+    Route::put('/contacts/{contact}', [App\Http\Controllers\Admin\ContactController::class, 'update'])->name('contacts.update');
+    Route::delete('/contacts/{contact}', [App\Http\Controllers\Admin\ContactController::class, 'destroy'])->name('contacts.destroy');
+    Route::post('/contacts/{id}/restore', [App\Http\Controllers\Admin\ContactController::class, 'restore'])->name('contacts.restore');
+    Route::delete('/contacts/{id}/force-delete', [App\Http\Controllers\Admin\ContactController::class, 'forceDelete'])->name('contacts.force-delete');
     Route::patch('/contacts/{contact}/status', [App\Http\Controllers\Admin\ContactController::class, 'updateStatus'])->name('contacts.update-status');
 
     // Contact Follow-ups
     Route::post('/contacts/{contact}/follow-ups', [App\Http\Controllers\Admin\ContactFollowUpController::class, 'store'])->name('contacts.follow-ups.store');
+    Route::put('/contacts/{contact}/follow-ups/{followUp}', [App\Http\Controllers\Admin\ContactFollowUpController::class, 'update'])->name('contacts.follow-ups.update');
     Route::delete('/contacts/{contact}/follow-ups/{followUp}', [App\Http\Controllers\Admin\ContactFollowUpController::class, 'destroy'])->name('contacts.follow-ups.destroy');
 });

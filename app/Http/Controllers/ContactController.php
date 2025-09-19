@@ -36,31 +36,50 @@ class ContactController extends Controller
         $country = $request->header('CF-IPCountry');
         $city = $request->header('CF-IPCity');
 
-        // Handle CV file upload
-        $cvPath = null;
-        if ($request->hasFile('cv_file') && $request->file('cv_file')->isValid()) {
-            $file = $request->file('cv_file');
-
-            // Validate file type and size
-            if ($file->getClientMimeType() !== 'application/pdf') {
+        // Handle multiple file uploads
+        $attachmentPaths = [];
+        if ($request->hasFile('attachment_files')) {
+            $files = $request->file('attachment_files');
+            
+            // Validate total file count
+            if (count($files) > 5) {
                 return response()->json([
-                    'message' => 'CV file must be a PDF.',
-                    'errors' => ['cv_file' => ['CV file must be a PDF.']],
+                    'message' => 'Maximum 5 files allowed.',
+                    'errors' => ['attachment_files' => ['Maximum 5 files allowed.']]
                 ], 422);
             }
-
-            if ($file->getSize() > 5 * 1024 * 1024) { // 5MB
+            
+            // Validate total file size
+            $totalSize = 0;
+            foreach ($files as $file) {
+                $totalSize += $file->getSize();
+            }
+            
+            if ($totalSize > 100 * 1024 * 1024) { // 100MB
                 return response()->json([
-                    'message' => 'CV file size must be less than 5MB.',
-                    'errors' => ['cv_file' => ['CV file size must be less than 5MB.']],
+                    'message' => 'Total file size must be less than 100MB.',
+                    'errors' => ['attachment_files' => ['Total file size must be less than 100MB.']]
                 ], 422);
             }
-
-            // Generate unique filename
-            $filename = 'cv_'.time().'_'.uniqid().'.pdf';
-
-            // Store file in storage/app/public/cvs directory
-            $cvPath = $file->storeAs('cvs', $filename, 'public');
+            
+            // Process each file
+            foreach ($files as $file) {
+                if ($file->isValid()) {
+                    // Generate unique filename
+                    $extension = $file->getClientOriginalExtension();
+                    $filename = 'attachment_' . time() . '_' . uniqid() . '.' . $extension;
+                    
+                    // Store file in storage/app/public/attachments directory
+                    $filePath = $file->storeAs('attachments', $filename, 'public');
+                    
+                    $attachmentPaths[] = [
+                        'path' => $filePath,
+                        'original_name' => $file->getClientOriginalName(),
+                        'mime_type' => $file->getClientMimeType(),
+                        'size' => $file->getSize()
+                    ];
+                }
+            }
         }
 
         // Check spam score with Gemini API
@@ -73,7 +92,7 @@ class ContactController extends Controller
             'phone' => $request->phone,
             'inquiry_type' => $request->inquiry_type,
             'message' => $request->message,
-            'cv_path' => $cvPath,
+            'attachment_paths' => $attachmentPaths,
             'ip_address' => $ip,
             'country' => $country,
             'city' => $city,

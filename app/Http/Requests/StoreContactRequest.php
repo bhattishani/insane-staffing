@@ -31,9 +31,10 @@ class StoreContactRequest extends FormRequest
             'device_fingerprint' => 'required|string'
         ];
 
-        // Add CV validation only for Job Seekers
+        // Add attachment validation only for Job Seekers
         if ($this->input('inquiry_type') === 'Job Seeker') {
-            $rules['cv_file'] = 'nullable|file|mimes:pdf|max:5120'; // 5MB in KB
+            $rules['attachment_files'] = 'nullable|array|max:5';
+            $rules['attachment_files.*'] = 'file|mimes:pdf,doc,docx,jpg,jpeg,png,gif,bmp,webp,mp4,avi,mov,wmv,flv,webm,xls,xlsx,csv|max:102400'; // 100MB in KB
         }
 
         return $rules;
@@ -50,9 +51,11 @@ class StoreContactRequest extends FormRequest
             'g-recaptcha-response.required' => 'Please complete the reCAPTCHA.',
             'g-recaptcha-response.recaptcha' => 'Please reload the page and try again.',
             'device_fingerprint.required' => 'Device fingerprint is required.',
-            'cv_file.file' => 'CV must be a valid file.',
-            'cv_file.mimes' => 'CV must be a PDF file.',
-            'cv_file.max' => 'CV file size must be less than 5MB.'
+            'attachment_files.array' => 'Attachments must be an array of files.',
+            'attachment_files.max' => 'Maximum 5 files allowed.',
+            'attachment_files.*.file' => 'Each attachment must be a valid file.',
+            'attachment_files.*.mimes' => 'Allowed file types: PDF, Word, Images, Videos, Excel/CSV.',
+            'attachment_files.*.max' => 'Each file must be less than 100MB.'
         ];
     }
 }

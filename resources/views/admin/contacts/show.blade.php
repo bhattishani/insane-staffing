@@ -22,18 +22,36 @@
 						<p><span class="font-medium">Email:</span> {{ $contact->email }}</p>
 						<p><span class="font-medium">Phone:</span> {{ $contact->phone }}</p>
 						<p><span class="font-medium">Type:</span> {{ $contact->inquiry_type }}</p>
-						<p><span class="font-medium">CV:</span> 
-							@if ($contact->cv_path)
-								<a
-									class="text-blue-600 hover:text-blue-800 inline-flex items-center gap-1"
-									href="{{ asset('storage/' . $contact->cv_path) }}"
-									target="_blank"
-								>
-									<i class="fas fa-file-pdf"></i>
-									View CV
-								</a>
+						<p><span class="font-medium">Attachments:</span> 
+							@if ($contact->attachment_paths && count($contact->attachment_paths) > 0)
+								<div class="mt-2 space-y-2">
+									@foreach ($contact->attachment_paths as $attachment)
+										@php
+											$mimeType = $attachment['mime_type'] ?? '';
+											$icon = 'fa-file';
+											if (strpos($mimeType, 'image/') === 0) $icon = 'fa-image';
+											elseif (strpos($mimeType, 'video/') === 0) $icon = 'fa-video';
+											elseif ($mimeType === 'application/pdf') $icon = 'fa-file-pdf';
+											elseif (strpos($mimeType, 'word') !== false) $icon = 'fa-file-word';
+											elseif (strpos($mimeType, 'excel') !== false || strpos($mimeType, 'csv') !== false) $icon = 'fa-file-excel';
+										@endphp
+										<div class="flex items-center gap-2">
+											<i class="fas {{ $icon }} text-blue-600"></i>
+											<a
+												class="text-blue-600 hover:text-blue-800"
+												href="{{ asset('storage/' . $attachment['path']) }}"
+												target="_blank"
+											>
+												{{ $attachment['original_name'] ?? 'Unknown file' }}
+											</a>
+											<span class="text-xs text-gray-500">
+												({{ number_format(($attachment['size'] ?? 0) / 1024 / 1024, 2) }} MB)
+											</span>
+										</div>
+									@endforeach
+								</div>
 							@else
-								<span class="text-gray-500">No CV uploaded</span>
+								<span class="text-gray-500">No files uploaded</span>
 							@endif
 						</p>
 					</div>

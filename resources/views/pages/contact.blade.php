@@ -123,6 +123,35 @@
         .social-links a:hover {
             color: #1f2937;
         }
+
+        /* File upload styles */
+        #file-list {
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e0 #f7fafc;
+        }
+
+        #file-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #file-list::-webkit-scrollbar-track {
+            background: #f7fafc;
+            border-radius: 3px;
+        }
+
+        #file-list::-webkit-scrollbar-thumb {
+            background: #cbd5e0;
+            border-radius: 3px;
+        }
+
+        #file-list::-webkit-scrollbar-thumb:hover {
+            background: #a0aec0;
+        }
+
+        .file-item-hover:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
     </style>
 @endsection
 
@@ -150,6 +179,7 @@
                     <h2 class="text-2xl font-bold mb-6">Send Us a Message</h2>
                     <form action="{{ route('contact.submit') }}" method="POST" enctype="multipart/form-data"
                         onsubmit="return false">
+                        @csrf
                         <div class="mb-4">
                             <label class="block text-gray-700 font-semibold mb-2" for="name">Name</label>
                             <input
@@ -173,22 +203,60 @@
                             <select
                                 class="w-full px-4 py-2 border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 id="inquiry_type" name="inquiry_type">
-                                <option selected value="Business">Business</option>
-                                <option value="Job Seeker">Job Seeker</option>
+                                <option value="Business">Business</option>
+                                <option selected value="Job Seeker">Job Seeker</option>
                             </select>
                         </div>
-                        <div class="mb-4" id="cv-upload-section" style="display: none;">
-                            <label class="block text-gray-700 font-semibold mb-2" for="cv_file">Upload CV (PDF
-                                only)</label>
-                            <input
-                                class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                id="cv_file" name="cv_file" type="file" accept=".pdf">
-                            <p class="text-sm text-gray-500 mt-1">Maximum file size: 5MB</p>
+                        <div class="mb-4" id="attachment-upload-section" style="display: none;">
+                            <label class="block text-gray-700 font-semibold mb-2" for="attachment_files">Upload Files (CV,
+                                Portfolio, etc.)</label>
+
+                            <!-- File Input (Hidden after selection) -->
+                            <div id="file-input-container">
+                                <input
+                                    class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    id="attachment_files" type="file" multiple
+                                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.bmp,.webp,.mp4,.avi,.mov,.wmv,.flv,.webm,.xls,.xlsx,.csv">
+                                <div class="mt-2 space-y-1">
+                                    <p class="text-sm text-gray-600"><strong>Allowed file types:</strong> PDF, Word, Images
+                                        (JPG, PNG, GIF, etc.), Videos (MP4, AVI, MOV, etc.), Excel/CSV</p>
+                                    <p class="text-sm text-gray-600"><strong>Maximum:</strong> 5 files, 100MB total</p>
+                                </div>
+                            </div>
+
+                            <!-- Add More Files Button -->
+                            <div id="add-more-container" style="display: none;" class="mt-3">
+                                <button type="button" id="add-more-files"
+                                    class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm">
+                                    <i class="fas fa-plus mr-2"></i>Add More Files
+                                </button>
+                            </div>
+
+                            <!-- Error Display -->
+                            <div class="mt-2">
+                                <p class="text-sm text-red-600" id="file-error" style="display: none;"></p>
+                            </div>
+
+                            <!-- File Preview List -->
+                            <div id="file-preview" class="mt-4" style="display: none;">
+                                <div class="flex justify-between items-center mb-3">
+                                    <p class="text-sm font-medium text-gray-700">Selected files:</p>
+                                    <span class="text-xs text-gray-500" id="file-count">0/5 files</span>
+                                </div>
+                                <div id="file-list"
+                                    class="space-y-2 max-h-60 overflow-y-auto border rounded-lg p-3 bg-gray-50"></div>
+                                <div class="mt-2 flex justify-between items-center text-xs text-gray-600">
+                                    <span id="total-size">Total size: 0 MB</span>
+                                    <button type="button" id="clear-all-files" class="text-red-600 hover:text-red-800">
+                                        <i class="fas fa-trash mr-1"></i>Clear All
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                         <div class="mb-6">
                             <label class="block text-gray-700 font-semibold mb-2" for="message">Message</label>
-                            <textarea class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" id="message"
-                                name="message" required rows="5"></textarea>
+                            <textarea class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                id="message" name="message" required rows="5"></textarea>
                         </div>
                         <div class="mb-6">
                             <div class="g-recaptcha" data-sitekey="{{ config('recaptcha.site_key') }}"></div>
@@ -332,40 +400,289 @@
                     setCookie('visitor_id', visitorId, 30); // Store for 30 days
                 });
 
-            // Show/hide CV upload based on inquiry type
-            $('#inquiry_type').on('change', function() {
-                const $cvSection = $('#cv-upload-section');
-                if ($(this).val() === 'Job Seeker') {
-                    $cvSection.show();
+            // File management array
+            let selectedFiles = [];
+            let fileIdCounter = 0;
+
+            // Show/hide attachment upload based on inquiry type
+            function toggleAttachmentSection() {
+                const $attachmentSection = $('#attachment-upload-section');
+                if ($('#inquiry_type').val() === 'Job Seeker') {
+                    $attachmentSection.show();
                 } else {
-                    $cvSection.hide();
-                    $('#cv_file').val(''); // Clear file input
+                    $attachmentSection.hide();
+                    clearAllFiles();
+                }
+            }
+
+            // Initialize attachment section based on default selection
+            toggleAttachmentSection();
+
+            $('#inquiry_type').on('change', function() {
+                toggleAttachmentSection();
+            });
+
+            // File input change handler
+            $('#attachment_files').on('change', function() {
+                const files = this.files;
+                if (files.length > 0) {
+                    addFilesToArray(files);
+                    $(this).val(''); // Clear input to allow selecting same files again
                 }
             });
 
-            // File validation
-            $('#cv_file').on('change', function() {
-                const file = this.files[0];
-                const $errorDiv = $('#form-error');
+            // Add more files button
+            $('#add-more-files').on('click', function() {
+                $('#attachment_files').click();
+            });
 
-                if (file) {
+            // Clear all files button
+            $('#clear-all-files').on('click', function() {
+                clearAllFiles();
+            });
+
+            function addFilesToArray(files) {
+                const $errorDiv = $('#file-error');
+                $errorDiv.hide();
+
+                const allowedTypes = [
+                    'application/pdf',
+                    'application/msword',
+                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                    'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/bmp', 'image/webp',
+                    'video/mp4', 'video/avi', 'video/quicktime', 'video/x-ms-wmv', 'video/x-flv',
+                    'video/webm',
+                    'application/vnd.ms-excel',
+                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                    'text/csv'
+                ];
+
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+
+                    // Check if we've reached the limit
+                    if (selectedFiles.length >= 5) {
+                        $errorDiv.text('Maximum 5 files allowed.').show();
+                        break;
+                    }
+
+                    // Check if file already exists
+                    const existingFile = selectedFiles.find(f => f.name === file.name && f.size === file.size);
+                    if (existingFile) {
+                        $errorDiv.text(`File "${file.name}" is already selected.`).show();
+                        continue;
+                    }
+
                     // Check file type
-                    if (file.type !== 'application/pdf') {
-                        $errorDiv.text('Please upload only PDF files.').removeClass('hidden');
-                        $(this).val('');
-                        return;
+                    if (!allowedTypes.includes(file.type)) {
+                        $errorDiv.text(`File "${file.name}" is not an allowed file type.`).show();
+                        continue;
                     }
 
-                    // Check file size (5MB = 5 * 1024 * 1024 bytes)
-                    if (file.size > 5 * 1024 * 1024) {
-                        $errorDiv.text('File size must be less than 5MB.').removeClass('hidden');
-                        $(this).val('');
-                        return;
+                    // Check total size
+                    const currentTotalSize = selectedFiles.reduce((total, f) => total + f.size, 0);
+                    if (currentTotalSize + file.size > 100 * 1024 * 1024) {
+                        $errorDiv.text('Total file size would exceed 100MB limit.').show();
+                        continue;
                     }
 
-                    $errorDiv.addClass('hidden');
+                    // Add file to array
+                    selectedFiles.push({
+                        id: ++fileIdCounter,
+                        file: file,
+                        name: file.name,
+                        size: file.size,
+                        type: file.type
+                    });
                 }
-            });
+
+                updateFilePreview();
+            }
+
+            function removeFile(fileId) {
+                selectedFiles = selectedFiles.filter(f => f.id !== fileId);
+                updateFilePreview();
+                $('#file-error').hide();
+            }
+
+            function clearAllFiles() {
+                selectedFiles = [];
+                updateFilePreview();
+                $('#file-error').hide();
+            }
+
+            function updateFilePreview() {
+                const $previewDiv = $('#file-preview');
+                const $fileList = $('#file-list');
+                const $fileCount = $('#file-count');
+                const $totalSize = $('#total-size');
+                const $addMoreContainer = $('#add-more-container');
+                const $fileInputContainer = $('#file-input-container');
+
+                if (selectedFiles.length === 0) {
+                    $previewDiv.hide();
+                    $addMoreContainer.hide();
+                    $fileInputContainer.show();
+                    return;
+                }
+
+                // Show/hide containers
+                $previewDiv.show();
+                $fileInputContainer.hide();
+                $addMoreContainer.show();
+
+                // Update file count
+                $fileCount.text(`${selectedFiles.length}/5 files`);
+
+                // Calculate total size
+                const totalSize = selectedFiles.reduce((total, f) => total + f.size, 0);
+                $totalSize.text(`Total size: ${(totalSize / 1024 / 1024).toFixed(2)} MB`);
+
+                // Clear and rebuild file list
+                $fileList.empty();
+
+                selectedFiles.forEach(fileObj => {
+                    const fileType = getFileTypeIcon(fileObj.type);
+                    const fileSize = (fileObj.size / 1024 / 1024).toFixed(2);
+                    const truncatedName = truncateFileName(fileObj.name, 30);
+
+                    const fileItem = $(`
+                        <div class="flex items-center justify-between p-2 bg-white rounded border hover:bg-gray-50 transition-colors">
+                            <div class="flex items-center space-x-3 flex-1 min-w-0">
+                                <i class="fas ${fileType.icon} ${fileType.color} flex-shrink-0"></i>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-medium text-gray-900 truncate" title="${fileObj.name}">
+                                        ${truncatedName}
+                                    </p>
+                                    <p class="text-xs text-gray-500">${fileSize} MB</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2 flex-shrink-0">
+                                <button type="button" class="text-blue-600 hover:text-blue-800 text-sm" onclick="previewFile(${fileObj.id})">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button type="button" class="text-red-600 hover:text-red-800 text-sm" onclick="removeFile(${fileObj.id})">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `);
+
+                    $fileList.append(fileItem);
+                });
+
+                // Hide add more button if limit reached
+                if (selectedFiles.length >= 5) {
+                    $addMoreContainer.hide();
+                }
+            }
+
+            function truncateFileName(fileName, maxLength) {
+                if (fileName.length <= maxLength) {
+                    return fileName;
+                }
+
+                const extension = fileName.split('.').pop();
+                const nameWithoutExt = fileName.substring(0, fileName.lastIndexOf('.'));
+                const truncatedName = nameWithoutExt.substring(0, maxLength - extension.length - 4) + '...';
+
+                return truncatedName + '.' + extension;
+            }
+
+            function getFileTypeIcon(mimeType) {
+                if (mimeType.startsWith('image/')) {
+                    return {
+                        icon: 'fa-image',
+                        color: 'text-green-600'
+                    };
+                } else if (mimeType.startsWith('video/')) {
+                    return {
+                        icon: 'fa-video',
+                        color: 'text-red-600'
+                    };
+                } else if (mimeType === 'application/pdf') {
+                    return {
+                        icon: 'fa-file-pdf',
+                        color: 'text-red-600'
+                    };
+                } else if (mimeType.includes('word')) {
+                    return {
+                        icon: 'fa-file-word',
+                        color: 'text-blue-600'
+                    };
+                } else if (mimeType.includes('excel') || mimeType.includes('csv')) {
+                    return {
+                        icon: 'fa-file-excel',
+                        color: 'text-green-600'
+                    };
+                } else {
+                    return {
+                        icon: 'fa-file',
+                        color: 'text-gray-600'
+                    };
+                }
+            }
+
+            function previewFile(fileId) {
+                const fileObj = selectedFiles.find(f => f.id === fileId);
+                if (!fileObj) return;
+
+                const file = fileObj.file;
+
+                if (file.type.startsWith('image/')) {
+                    // Create image preview modal for images
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const modal = $(`
+                            <div class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50" id="preview-modal">
+                                <div class="max-w-4xl max-h-full p-4">
+                                    <div class="bg-white rounded-lg p-4">
+                                        <div class="flex justify-between items-center mb-4">
+                                            <h3 class="text-lg font-semibold">${file.name}</h3>
+                                            <button type="button" class="text-gray-500 hover:text-gray-700" onclick="$('#preview-modal').remove()">
+                                                <i class="fas fa-times text-xl"></i>
+                                            </button>
+                                        </div>
+                                        <img src="${e.target.result}" alt="${file.name}" class="max-w-full max-h-96 mx-auto">
+                                    </div>
+                                </div>
+                            </div>
+                        `);
+                        $('body').append(modal);
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    // For non-image files, create blob URL and open in new tab
+                    try {
+                        const blob = new Blob([file], {
+                            type: file.type
+                        });
+                        const blobUrl = URL.createObjectURL(blob);
+
+                        // Open in new tab
+                        const newWindow = window.open(blobUrl, '_blank');
+
+                        // Clean up the blob URL after a delay to allow the browser to load it
+                        setTimeout(() => {
+                            URL.revokeObjectURL(blobUrl);
+                        }, 1000);
+
+                        // If popup was blocked, show fallback message
+                        if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined') {
+                            alert(
+                                `Popup blocked! File: ${file.name}\nSize: ${(file.size / 1024 / 1024).toFixed(2)} MB\nType: ${file.type}\n\nPlease allow popups to preview files.`);
+                        }
+                    } catch (error) {
+                        console.error('Error creating blob URL:', error);
+                        alert(
+                            `Unable to preview file: ${file.name}\nSize: ${(file.size / 1024 / 1024).toFixed(2)} MB\nType: ${file.type}`);
+                    }
+                }
+            }
+
+            // Make functions global for onclick handlers
+            window.removeFile = removeFile;
+            window.previewFile = previewFile;
 
             // Form submission
             $('form').on('submit', function(e) {
@@ -383,7 +700,26 @@
                 $submitSpinner.show();
 
                 // Create FormData object
-                const formData = new FormData(this);
+                const formData = new FormData();
+
+                // Add form fields
+                formData.append('_token', $('input[name="_token"]').val());
+                formData.append('name', $('#name').val());
+                formData.append('email', $('#email').val());
+                formData.append('phone', $('#phone').val());
+                formData.append('inquiry_type', $('#inquiry_type').val());
+                formData.append('message', $('#message').val());
+                formData.append('device_fingerprint', $('#device_fingerprint').val());
+
+                // Add reCAPTCHA response
+                if (typeof grecaptcha !== 'undefined') {
+                    formData.append('g-recaptcha-response', grecaptcha.getResponse());
+                }
+
+                // Add selected files
+                selectedFiles.forEach((fileObj, index) => {
+                    formData.append(`attachment_files[${index}]`, fileObj.file);
+                });
 
                 $.ajax({
                     url: $form.attr('action'),
@@ -393,7 +729,7 @@
                     contentType: false,
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest',
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        'X-CSRF-TOKEN': $('input[name="_token"]').val()
                     },
                     success: function(data) {
                         $form[0].reset();
@@ -401,8 +737,9 @@
                             grecaptcha.reset();
                         }
 
-                        // Hide CV section after reset
-                        $('#cv-upload-section').hide();
+                        // Hide attachment section after reset
+                        $('#attachment-upload-section').hide();
+                        clearAllFiles();
 
                         // Store submission in cookie
                         const visitorId = $('#device_fingerprint').val();
