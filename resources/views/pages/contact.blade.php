@@ -150,7 +150,6 @@
                     <h2 class="text-2xl font-bold mb-6">Send Us a Message</h2>
                     <form action="{{ route('contact.submit') }}" method="POST" enctype="multipart/form-data"
                         onsubmit="return false">
-                        @csrf
                         <div class="mb-4">
                             <label class="block text-gray-700 font-semibold mb-2" for="name">Name</label>
                             <input
